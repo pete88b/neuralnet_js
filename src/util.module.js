@@ -130,3 +130,7 @@ function argmax(a) {
     return a.indexOf(Math.max(...a));
 }
 
+export {
+    shape,transpose,dotProduct,randn,zeros,
+    matrixSum,matrixSubtract1d,matrixSubtract2d,matrixMultiply1d,matrixMultiply2d,argmax}
+

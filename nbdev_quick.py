@@ -53,7 +53,7 @@ class NbdevQuick(Magics):
     def _write_to_file(self,cell):
         """write the source of the cell to the module file"""
         # tform things like %magic and !system commands
-        # TODO: this is prety clever but ... might it be better to encourage plain py only?
+        # TODO: this is pretty clever but ... might it be better to encourage plain py only?
         cell=self.shell.input_transformer_manager.transform_cell(cell)
         lines=re.split('(\n)',cell)
         cell_name=self._cell_name(lines)

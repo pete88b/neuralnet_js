@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta name="description" content="Shows how to use nn.js in html" />
+  <meta charset="utf-8">
+  <title>nn.js demo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="author" content="">
+</head>
+
+<body>
+  
+<div class="container">
+  <h2>Show how we can use the nn library in a browser</h2>
+
+  This page loads the nn library via
+  <pre>
+    &lt;script src="../src/util.js">&lt;/script>
+    &lt;script src="../src/data.js">&lt;/script>
+    &lt;script src="../src/nn.js">&lt;/script>
+  </pre>
+  Try copying the following into your browser console
+  (Ctrl+Shift+I to open dev tools in Chrome and FireFox)
+  <pre>
+response=await fetch('/data/iris.data');
+stringData=await response.text();
+data=parseCsv(stringData, new IrisRowHandler()).result;
+lossFn=new BinaryCrossEntropyLoss();
+model=[new Linear(4,50), new ReLU(), new Linear(50,3), new Sigmoid()];
+learn=new Learner(model, lossFn, data);
+learn.fit(25);
+  </pre>
+  <p>Feel free to change &uarr; however you like (o:</p>
+  You could also try setting a breakpoint (via debugger in FireFox, Sources in Chrome)
+  then running the same code again.
+</div>
+
+<script src="../src/util.js"></script>
+<script src="../src/data.js"></script>
+<script src="../src/nn.js"></script>
+
+</body>
+</html>
+

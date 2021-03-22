@@ -23,19 +23,29 @@ def _find_default_exp(nb):
     if m is None: return None
     return m.group(1)
 #NbdevQuick:end(_find_default_exp)
+#NbdevQuick:start(_extract_and_process_source)
+def _extract_and_process_source(cell,target):
+    source=cell['source']
+    if check_re(cell, rf'import.*from.*(/{target}/)') is not None:
+        source=source.replace(f'{target}/','')
+    return source
+#NbdevQuick:end(_extract_and_process_source)
 #NbdevQuick:start(_notebook2script)
 def _notebook2script(fname, target):
     fname,target,nb = Path(fname),Path(target),read_nb(fname)
     default_exp=_find_default_exp(nb)
     if default_exp is None: return
     target.mkdir(parents=True,exist_ok=True)
-    target_file=target/f'{default_exp}.js'
-    print('Converting',fname,'to',target_file)
-    with open(target_file, 'w') as f:
-        for cell in nb['cells']:
-            if check_re(cell, r'(^/\*\*)|(^export )') is not None:
-                f.write(cell['source'])
+    def _convert(include_regex,exclude_regex,target_file):
+        print('Converting',fname,'to',target_file)
+        with open(target_file, 'w') as f:
+            for cell in nb['cells']:
+                if check_re(cell, include_regex) is None: continue
+                if exclude_regex and check_re(cell, exclude_regex) is not None: continue
+                f.write(_extract_and_process_source(cell,target))
                 f.write('\n\n')
+    _convert(r'(^/\*\*)','(^import )',target/f'{default_exp}.js')
+    _convert(r'(^/\*\*)|(^export )',None,target/f'{default_exp}.module.js')
 #NbdevQuick:end(_notebook2script)
 #NbdevQuick:start(notebook2script)
 def notebook2script(fname=None, target='src'):

@@ -1,4 +1,11 @@
 /**
+Imports we need in nn.module.js
+*/
+import {shape,transpose,dotProduct,randn,zeros,argmax} from './util.module.js';
+import {matrixSum,matrixSubtract1d,matrixSubtract2d,matrixMultiply1d,matrixMultiply2d} from './util.module.js';
+import {head,tail,parseCsv,IRIS_CLASS_MAP,IrisRowHandler,shuffle,split,batches} from './data.module.js';
+
+/**
 */
 function accuracy(yPred2d,yTrue2d) {
     if (yPred2d.length != yTrue2d.length) {
@@ -186,4 +193,6 @@ class Learner {
         });
     }
 }
+
+export {Sigmoid,BinaryCrossEntropyLoss,ReLU,Linear,Learner}
 

@@ -1,4 +1,4 @@
-import {randn,shape} from '../src/util.js';
+import {randn,shape} from '../src/util.module.js';
 
 // set the dimensions and margins of the graph
 var margin = {top: 10, right: 30, bottom: 30, left: 40},

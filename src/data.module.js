@@ -1,4 +1,9 @@
 /**
+Imports we need in data.module.js
+*/
+import {argmax} from './util.module.js';
+
+/**
 Log the first `rows` of an array.
 */
 function head(data,rows=10) {
@@ -122,4 +127,6 @@ function batches(arrays, bs=64) {
     }
     return result;
 }
+
+export {head,tail,parseCsv,IRIS_CLASS_MAP,RowHandler,IrisRowHandler,shuffle,split,batches}
 
