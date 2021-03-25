@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<!--
+https://bl.ocks.org/Niekes/1c15016ae5b5f11508f92852057136b5
+https://github.com/niekes/d3-3d
+-->
+<meta charset="utf-8">
+<!--script src="https://unpkg.com/d3-3d/build/d3-3d.min.js"></script>
+<script src="https://d3js.org/d3.v4.min.js"></script-->
+<script src="d3-3d.js"></script>
+<script src="d3.v4.js"></script>
+<script src="../src/util.js"></script>
+<script src="../src/data.js"></script>
+<script src="../src/nn.js"></script>
+<body>
+<p>
+    Inspired by full stack deep learning
+    <a href="https://fullstackdeeplearning.com/spring2021/notebook-1/">Notebook: Coding a neural net</a>,
+    this page shows how a simple neural net can learn a non-linear function.
+</p>
+<p>
+    This page uses <a href="https://bl.ocks.org/Niekes/1c15016ae5b5f11508f92852057136b5">
+    Stefan Nieke’s d3-3d library</a> to draw the <em>draggable</em> scatter plot and
+    <a href="https://github.com/pete88b/neuralnet_js">neuralnet js</a>
+    to build and train the neural net.
+</p>
+<svg id="legend" height="20" width="450"></svg>
+<svg id="chart" width="960" height="600"></svg>
+<script>
+    var origin = [500, 250], j = 10, scale = 30, scatter = [], yLine = [], xGrid = [], beta = 0, alpha = 0, key = function(d){ return d.id; }, startAngle = 3.3;
+    var svg    = d3.select('#chart').call(d3.drag().on('drag', dragged).on('start', dragStart).on('end', dragEnd)).append('g');
+    var color  = d3.scaleOrdinal(d3.schemeCategory20);
+    var mx, my, mouseX, mouseY;
+
+    function _c(name,opacity) {
+        const c = d3.hsl(name);
+        c.opacity = opacity;
+        return c;
+    }
+
+    const colorMap = {
+        trueStroke: _c('steelblue',0.8),
+        trueFill: _c('steelblue',0.2),
+        validPredStroke: _c('darkred',1.0),
+        validPredFill: _c('darkred',0.6),
+        trainPredStroke: _c('pink',0.6),
+        trainPredFill: _c('pink',0.1)
+    };
+
+    /* build a legend */
+    d3.select('body').append('div').attr('id', 'tooltip').attr('style', 'position: absolute; opacity: 0;');
+    function addToLegend(color,text,cx) {
+        var legend = d3.select("#legend")
+        legend.append("circle").attr("cx",cx+10).attr("cy",10).attr("r", 6)
+            .attr('stroke',colorMap[color+'Stroke'])
+            .attr('fill',colorMap[color+'Fill']);
+        legend.append("text").attr("x", cx+20).attr("y", 10).text(text)
+            .style("font-size", "14px").attr("alignment-baseline","middle");
+    }
+    addToLegend('true','True',0);
+    addToLegend('validPred','Valid Prediction',50);
+    addToLegend('trainPred','Train Prediction',165);
+    /* end of build a legend */
+    
+    var grid3d = d3._3d()
+        .shape('GRID', 20)
+        .origin(origin)
+        .rotateY( startAngle)
+        .rotateX(-startAngle)
+        .scale(scale);
+
+    var point3d = d3._3d()
+        .x(function(d){ return d.x; })
+        .y(function(d){ return d.y; })
+        .z(function(d){ return d.z; })
+        .origin(origin)
+        .rotateY( startAngle)
+        .rotateX(-startAngle)
+        .scale(scale);
+
+    var yScale3d = d3._3d()
+        .shape('LINE_STRIP')
+        .origin(origin)
+        .rotateY( startAngle)
+        .rotateX(-startAngle)
+        .scale(scale);
+
+    function processData(data, tt){
+
+        /* ----------- GRID ----------- */
+
+        var xGrid = svg.selectAll('path.grid').data(data[0], key);
+
+        xGrid
+            .enter()
+            .append('path')
+            .attr('class', '_3d grid')
+            .merge(xGrid)
+            .attr('stroke', 'black')
+            .attr('stroke-width', 0.3)
+            .attr('fill', function(d){ return d.ccw ? 'lightgrey' : '#717171'; })
+            .attr('fill-opacity', 0.3)
+            .attr('d', grid3d.draw);
+
+        xGrid.exit().remove();
+
+        /* ----------- POINTS ----------- */
+
+        var points = svg.selectAll('circle').data(data[1], key);
+        
+        points
+            .enter()
+            .append('circle')
+            .attr('class', '_3d')
+            .attr('opacity', 0)
+            .attr('cx', posPointX)
+            .attr('cy', posPointY)
+            .merge(points)
+            .transition().duration(tt)
+            .attr('r', 3)
+            .attr('stroke', function(d){ return colorMap[d.type+'Stroke']; })
+            .attr('fill', function(d){ return colorMap[d.type+'Fill']; })
+            .attr('opacity', 1)
+            .attr('cx', posPointX)
+            .attr('cy', posPointY);
+
+        points.exit().remove();
+
+        d3.selectAll('._3d').sort(d3._3d().sort);
+    }
+
+    function posPointX(d){
+        return d.projected.x;
+    }
+
+    function posPointY(d){
+        return d.projected.y;
+    }
+
+	function init() {
+        var cnt = 0;
+        xGrid = [], scatter = [], yLine = [];
+
+        let n = 200;
+        let d = 2;
+        let x = zeros(n, d);
+        x = x.map(row=>row.map(elem=>d3.randomUniform(-1,1)()));
+        let weightsTrue = transpose([[2.5, .5]]);
+        let biasTrue = .5;
+        let xSquared = x.map(row=>row.map(elem=>elem**2));
+        let yTrue = matrixSum2d(
+                        matrixSum2d(
+                            dotProduct(xSquared, weightsTrue), dotProduct(x, weightsTrue)),
+                        biasTrue);
+        console.log('x:',shape(x),'weights:',shape(weightsTrue), 'bias (value):', biasTrue, 'y:', shape(yTrue));
+
+        x.forEach((e,i) => {
+            scatter.push({x: e[0], y: yTrue[i], z: e[1], type: 'true', id: 'point_' + cnt++});
+        });
+
+        let lossFn=new MSE();
+        let model=[new Linear(2,50), new ReLU(), new Linear(50,1)];
+        let learn=new Learner(model, lossFn, [x,yTrue], []);
+        
+        setInterval(function() {
+            scatter=[];
+            x.forEach((e,i) => {
+                scatter.push({x: e[0], y: yTrue[i], z: e[1], type: 'true', id: 'point_' + cnt++});
+            });
+            let yPred = learn.forward(learn.xValid);
+            learn.xValid.forEach((e,i) => {
+                scatter.push({x: e[0], y: yPred[i], z: e[1], type: 'validPred', id: 'point_' + cnt++});
+            });
+            yPred = learn.forward(learn.xTrain);
+            learn.xTrain.forEach((e,i) => {
+                scatter.push({x: e[0], y: yPred[i], z: e[1], type: 'trainPred', id: 'point_' + cnt++});
+            });
+            learn.fit(1);
+            var data = [
+                grid3d(xGrid),
+                point3d(scatter),
+                yScale3d([yLine])
+            ];
+            
+            processData(data, 0);
+        }, 1000);
+
+        (function() {
+            for(var z = -j; z < j; z++){
+                for(var x = -j; x < j; x++){
+                    xGrid.push([x, -1, z]);
+                }
+            }
+        })();
+        
+        d3.range(-1, 11, 1).forEach(function(d) {
+            yLine.push([-j, d, -j]); });
+
+        var data = [
+            grid3d(xGrid),
+            point3d(scatter),
+            yScale3d([yLine])
+        ];
+        
+        processData(data, 500);
+    }
+
+    function dragStart(){
+        mx = d3.event.x;
+        my = d3.event.y;
+    }
+
+    function dragged(){
+        mouseX = mouseX || 0;
+        mouseY = mouseY || 0;
+        beta   = (d3.event.x - mx + mouseX) * Math.PI / 230 * (-1);
+        alpha  = (d3.event.y - my + mouseY) * Math.PI / 230 * (-1);
+        var data = [
+             grid3d.rotateY(beta + startAngle).rotateX(alpha - startAngle)(xGrid),
+            point3d.rotateY(beta + startAngle).rotateX(alpha - startAngle)(scatter),
+            yScale3d.rotateY(beta + startAngle).rotateX(alpha - startAngle)([yLine]),
+        ];
+        processData(data, 0);
+    }
+
+    function dragEnd(){
+        mouseX = d3.event.x - mx + mouseX;
+        mouseY = d3.event.y - my + mouseY;
+    }
+
+    init();
+</script>
+</body>

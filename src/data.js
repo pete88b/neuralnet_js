@@ -111,6 +111,7 @@ function split(arrays, percent=0.2) {
 }
 
 /**
+Shuffle any number of arrays then put them into an array of batches.
 */
 function batches(arrays, bs=64) {
     shuffle(arrays);

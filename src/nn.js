@@ -22,6 +22,19 @@ function accuracy(yPred2d,yTrue2d) {
 
 /**
 */
+class MSE {
+    forward(yPred2d,yTrue2d) {
+        this.error=matrixSubtract2d(yPred2d,yTrue2d);
+        return mean(this.error.map(row=>row.map(elem=>elem**2)));
+    }
+    backward() {
+        this.grad=matrixMultiply2d(this.error, 2/this.error.length);
+        return this.grad;
+    }
+}
+
+/**
+*/
 class BinaryCrossEntropyLoss {
     _forward1d(yPred1d,yTrue1d) {
         const temp=[];
@@ -101,7 +114,7 @@ class Linear {
     }
     forward(x) {
         this.x=x; // shape(bs,inputDim)
-        return matrixSum(dotProduct(x,this.weights), this.bias);
+        return matrixSum2d(dotProduct(x,this.weights), this.bias);
     }
     backward(gradient) { // gradient shape(bs,numHidden)
         // weightsGradient/biasGradient need to be the same shape as weights/bias

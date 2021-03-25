@@ -11,6 +11,15 @@ function shape(m) {
 }
 
 /**
+Returns the mean of all elements in a 2d array.
+*/
+function mean(matrix) {
+    const elementCount=shape(matrix).reduce((a,b)=>a*b);
+    const sum=matrix.map(row=>row.reduce((a,b)=>a+b)).reduce((a,b)=>a+b);
+    return sum/elementCount;
+}
+
+/**
 Returns the transpose of a 2d array.
 */
 function transpose(matrix) {
@@ -74,25 +83,60 @@ function randn(d0,d1) {
 }
 
 /**
-Return a 1d or 2d array of zeros.
+Return a 1d or 2d array of `fillValue`.
 */
-function zeros(d0, d1) {
+function full(d0,d1,fillValue) {
     if (d1 == null) {
-        return new Array(d0).fill(0);
+        return new Array(d0).fill(fillValue);
     }
     const result=[];
     for (let i=0; i<d0; i++) {
-        result.push(new Array(d1).fill(0));
+        result.push(new Array(d1).fill(fillValue));
     }
     return result;
 }
 
 /**
-Elementwise sum of a 2d and a 1d matrix.
-`shape(a2d)[1]` must equal `shape(b1d)`.
+Return a 1d or 2d array of zeros.
 */
-function matrixSum(a2d,b1d) {
-    return a2d.map(row => row.map((e, i) => e+b1d[i]));
+function zeros(d0,d1) {
+    return full(d0,d1,0);
+}
+
+/**
+Return matrix of `newShape` if
+- a is a scalar value,
+- a is a 1d array with a length that matches newShape[1] or
+- a is the new shape already.
+
+`newShape` must be 2d.
+*/
+function reshape(a,newShape) {
+    const oldShape=shape(a);
+    if (oldShape.length==0) {
+        return full(newShape[0],newShape[1],a);
+    } else if (oldShape.length==1 && oldShape[0]==newShape[1]) {
+        return new Array(newShape[0]).fill(a);
+    }
+    newShape.forEach((s,i) => {
+        if (s!=oldShape[i]) throw `Can't reshape from [${oldShape}] to [${newShape}]`;
+    });
+    return a;
+}
+
+/**
+Elementwise sum of a and b where a and b are 1d.
+*/
+function matrixSum1d(a,b) {
+    return a.map((e,i) => e+b[i]);
+}
+
+/**
+Elementwise sum of a2d and b, where a2d is 2d and b can be reshaped to match a.
+*/
+function matrixSum2d(a2d,b) {
+    const b2d=reshape(b,shape(a2d));
+    return a2d.map((row,i) => matrixSum1d(row, b2d[i]));
 }
 
 /**
@@ -103,24 +147,27 @@ function matrixSubtract1d(a,b) {
 }
 
 /**
-Element wise subtraction of `b` from `a`, where a and b are 2d.
+Elementwise subtraction of b from a2d, where a2d is 2d and b can be reshaped to match a.
 */
-function matrixSubtract2d(a,b) {
-    return a.map((row,i) => matrixSubtract1d(row,b[i]));
+function matrixSubtract2d(a2d,b) {
+    const b2d=reshape(b,shape(a2d));
+    return a2d.map((row,i) => matrixSubtract1d(row,b2d[i]));
 }
 
 /**
-Return 1d array multiplied by a scalar value.
+Element wise multiplication of `b` and `a`, where a is 1d and b can be reshaped to match a.
 */
-function matrixMultiply1d(m,scalar) {
-    return m.map(e => e*scalar);
+function matrixMultiply1d(a1d,b) {
+    const b1d=reshape(b,shape(a1d));
+    return a1d.map((e,i) => e*b1d[i]);
 }
 
 /**
-Return 2d array multiplied by a scalar value.
+Elementwise multiplication of a2d with b, where a2d is 2d and b can be reshaped to match a.
 */
-function matrixMultiply2d(m,scalar) {
-    return m.map(row => matrixMultiply1d(row,scalar));
+function matrixMultiply2d(a2d,b) {
+    const b2d=reshape(b,shape(a2d));
+    return a2d.map((row,i) => matrixMultiply1d(row,b2d[i]));
 }
 
 /**
@@ -131,6 +178,6 @@ function argmax(a) {
 }
 
 export {
-    shape,transpose,dotProduct,randn,zeros,
-    matrixSum,matrixSubtract1d,matrixSubtract2d,matrixMultiply1d,matrixMultiply2d,argmax}
+    shape,transpose,dotProduct,randn,zeros,mean,reshape,argmax,
+    matrixSum1d,matrixSum2d,matrixSubtract1d,matrixSubtract2d,matrixMultiply1d,matrixMultiply2d}
 

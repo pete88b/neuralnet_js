@@ -1,8 +1,8 @@
 /**
 Imports we need in nn.module.js
 */
-import {shape,transpose,dotProduct,randn,zeros,argmax} from './util.module.js';
-import {matrixSum,matrixSubtract1d,matrixSubtract2d,matrixMultiply1d,matrixMultiply2d} from './util.module.js';
+import {shape,transpose,dotProduct,randn,zeros,argmax,mean} from './util.module.js';
+import {matrixSum1d,matrixSum2d,matrixSubtract1d,matrixSubtract2d,matrixMultiply1d,matrixMultiply2d} from './util.module.js';
 import {head,tail,parseCsv,IRIS_CLASS_MAP,IrisRowHandler,shuffle,split,batches} from './data.module.js';
 
 /**
@@ -25,6 +25,19 @@ function accuracy(yPred2d,yTrue2d) {
         }
     });
     return correctCount/yPred2d.length;
+}
+
+/**
+*/
+class MSE {
+    forward(yPred2d,yTrue2d) {
+        this.error=matrixSubtract2d(yPred2d,yTrue2d);
+        return mean(this.error.map(row=>row.map(elem=>elem**2)));
+    }
+    backward() {
+        this.grad=matrixMultiply2d(this.error, 2/this.error.length);
+        return this.grad;
+    }
 }
 
 /**
@@ -108,7 +121,7 @@ class Linear {
     }
     forward(x) {
         this.x=x; // shape(bs,inputDim)
-        return matrixSum(dotProduct(x,this.weights), this.bias);
+        return matrixSum2d(dotProduct(x,this.weights), this.bias);
     }
     backward(gradient) { // gradient shape(bs,numHidden)
         // weightsGradient/biasGradient need to be the same shape as weights/bias
@@ -194,5 +207,5 @@ class Learner {
     }
 }
 
-export {Sigmoid,BinaryCrossEntropyLoss,ReLU,Linear,Learner}
+export {Sigmoid,MSE,BinaryCrossEntropyLoss,ReLU,Linear,Learner}
 
