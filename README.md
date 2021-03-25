@@ -4,6 +4,10 @@
 
 This project will also look at using an [nbdev](https://github.com/fastai/nbdev/) style of library development using [tslab](https://github.com/yunabe/tslab) to provide a js kernel.
 
+## Live demo
+
+This [gist via bl.ocks](https://bl.ocks.org/pete88b/2aa60d189006bba7c59039f1e9d55936) shows how a model, learning in browser, converges with a 3d scatter plot.
+
 # Quick example
 
 Let's train a classifier using [iris.data](https://archive.ics.uci.edu/ml/datasets/iris).
@@ -25,32 +29,32 @@ let learn=new Learner(model, lossFn, data);
 learn.fit(25);
 ```
 
-    epoch -1 valid loss 0.9479352433795201 metrics [ 0.16666666666666666 ]
-    epoch 0 valid loss 0.3918940015957982 metrics [ 0.7333333333333333 ]
-    epoch 1 valid loss 0.30918027119353186 metrics [ 0.8333333333333334 ]
-    epoch 2 valid loss 0.2746811037277132 metrics [ 0.8333333333333334 ]
-    epoch 3 valid loss 0.2530131465769288 metrics [ 0.8666666666666667 ]
-    epoch 4 valid loss 0.2381835103079123 metrics [ 0.8666666666666667 ]
-    epoch 5 valid loss 0.2269235083808026 metrics [ 0.8666666666666667 ]
-    epoch 6 valid loss 0.2182573318809938 metrics [ 0.8666666666666667 ]
-    epoch 7 valid loss 0.21133856110713883 metrics [ 0.9 ]
-    epoch 8 valid loss 0.2048899600128032 metrics [ 0.9 ]
-    epoch 9 valid loss 0.19936697564963365 metrics [ 0.9 ]
-    epoch 10 valid loss 0.19454810035687622 metrics [ 0.9 ]
-    epoch 11 valid loss 0.19010850734868168 metrics [ 0.9 ]
-    epoch 12 valid loss 0.18641622742173664 metrics [ 0.9 ]
-    epoch 13 valid loss 0.18250157655119695 metrics [ 0.9 ]
-    epoch 14 valid loss 0.17900738060361182 metrics [ 0.9 ]
-    epoch 15 valid loss 0.17592690687939777 metrics [ 0.9 ]
-    epoch 16 valid loss 0.17273859884997492 metrics [ 0.9 ]
-    epoch 17 valid loss 0.16983281626142313 metrics [ 0.9 ]
-    epoch 18 valid loss 0.16692967133988176 metrics [ 0.9 ]
-    epoch 19 valid loss 0.16411886961096833 metrics [ 0.9 ]
-    epoch 20 valid loss 0.16132731359970418 metrics [ 0.9 ]
-    epoch 21 valid loss 0.15846197888518415 metrics [ 0.9 ]
-    epoch 22 valid loss 0.1560980191410202 metrics [ 0.9 ]
-    epoch 23 valid loss 0.15384031620459687 metrics [ 0.9333333333333333 ]
-    epoch 24 valid loss 0.15153757745158905 metrics [ 0.9333333333333333 ]
+    epoch -1 valid loss 0.7883572345780145 metrics [ 0.43333333333333335 ]
+    epoch 0 valid loss 0.5267556633586952 metrics [ 0.5666666666666667 ]
+    epoch 1 valid loss 0.44099933286406734 metrics [ 0.7 ]
+    epoch 2 valid loss 0.40672909169806126 metrics [ 0.7666666666666667 ]
+    epoch 3 valid loss 0.3869921034748707 metrics [ 0.7333333333333333 ]
+    epoch 4 valid loss 0.3731967804273562 metrics [ 0.8 ]
+    epoch 5 valid loss 0.36288733941708184 metrics [ 0.7666666666666667 ]
+    epoch 6 valid loss 0.35406780802342647 metrics [ 0.8 ]
+    epoch 7 valid loss 0.34640309404547903 metrics [ 0.8 ]
+    epoch 8 valid loss 0.3398996707466074 metrics [ 0.8 ]
+    epoch 9 valid loss 0.33421554257888836 metrics [ 0.7666666666666667 ]
+    epoch 10 valid loss 0.3285108760429585 metrics [ 0.7666666666666667 ]
+    epoch 11 valid loss 0.3228930031170849 metrics [ 0.8 ]
+    epoch 12 valid loss 0.31745012901639436 metrics [ 0.8 ]
+    epoch 13 valid loss 0.3130312981606421 metrics [ 0.8 ]
+    epoch 14 valid loss 0.3086841753495582 metrics [ 0.8 ]
+    epoch 15 valid loss 0.30430963697452745 metrics [ 0.8 ]
+    epoch 16 valid loss 0.300084500321322 metrics [ 0.8 ]
+    epoch 17 valid loss 0.29557778712689037 metrics [ 0.8 ]
+    epoch 18 valid loss 0.29140629672455687 metrics [ 0.8 ]
+    epoch 19 valid loss 0.28759620227811683 metrics [ 0.8 ]
+    epoch 20 valid loss 0.2837103287672317 metrics [ 0.8 ]
+    epoch 21 valid loss 0.28015904255922847 metrics [ 0.8 ]
+    epoch 22 valid loss 0.27654524617006615 metrics [ 0.8 ]
+    epoch 23 valid loss 0.27356909201221596 metrics [ 0.8 ]
+    epoch 24 valid loss 0.27050508342776985 metrics [ 0.8 ]
 
 
 We can look at predictions our trained model makes on the validation data.
@@ -64,19 +68,19 @@ tail(preds,3);
 ```
 
     -3 [
-      [ 0.9961964007825763, 0.007737473342420738, 0.006337463666936329 ],
-      '0: Iris-setosa',
-      '0: Iris-setosa'
-    ]
-    -2 [
-      [ 0.07623029536461032, 0.8285882195388641, 0.08304399546623287 ],
-      '1: Iris-versicolor',
-      '1: Iris-versicolor'
-    ]
-    -1 [
-      [ 0.0004976528433462576, 0.06229985007007116, 0.9724517814948943 ],
+      [ 0.01314091483672807, 0.24587330687958442, 0.7926335199651222 ],
       '2: Iris-virginica',
       '2: Iris-virginica'
+    ]
+    -2 [
+      [ 0.001113699016691579, 0.4366974366023484, 0.712490424150912 ],
+      '2: Iris-virginica',
+      '2: Iris-virginica'
+    ]
+    -1 [
+      [ 0.9961008020334862, 0.001475307146697653, 0.0019550674874320613 ],
+      '0: Iris-setosa',
+      '0: Iris-setosa'
     ]
 
 
@@ -93,18 +97,22 @@ learn.predict(...rh.result, (y=>`${argmax(y)}: ${IRIS_CLASS_MAP[argmax(y)]}`));
 
     [
       [
-        [ 0.016203874311635395, 0.1923948844409367, 0.025486821451765052 ],
+        [ 0.011687742115645418, 0.42806382336273874, 0.1731676214386136 ],
         '1: Iris-versicolor',
         '0: Iris-setosa'
       ],
       [
-        [ 0.5506634682013896, 0.33454377560614806, 0.08987844613360595 ],
+        [ 0.3528794767136167, 0.12903259032530753, 0.05141777933637007 ],
         '0: Iris-setosa',
         '1: Iris-versicolor'
       ],
       [
-        [ 0.5251229032595576, 0.0212231403266926, 0.6141118173008945 ],
-        '2: Iris-virginica',
+        [
+          0.009738425285232473,
+          0.006588968072670429,
+          0.004163304527861473
+        ],
+        '0: Iris-setosa',
         '2: Iris-virginica'
       ]
     ]
