@@ -178,6 +178,6 @@ function argmax(a) {
 }
 
 export {
-    shape,transpose,dotProduct,randn,zeros,mean,reshape,argmax,
+    shape,transpose,dotProduct,randn,full,zeros,mean,reshape,argmax,
     matrixSum1d,matrixSum2d,matrixSubtract1d,matrixSubtract2d,matrixMultiply1d,matrixMultiply2d}
 
