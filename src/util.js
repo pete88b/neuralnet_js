@@ -1,4 +1,10 @@
 /**
+*/
+function exp(a) {
+    return Math.pow(Math.E, a);
+}
+
+/**
 Returns the shape of an "n" dimentional array.
 */
 function shape(m) {

@@ -1,4 +1,10 @@
 /**
+*/
+function exp(a) {
+    return Math.pow(Math.E, a);
+}
+
+/**
 Returns the shape of an "n" dimentional array.
 */
 function shape(m) {
@@ -170,6 +176,6 @@ function argmax(a) {
 }
 
 export {
-    shape,transpose,dotProduct,randn,full,zeros,mean,reshape,argmax,
+    exp,shape,transpose,dotProduct,randn,full,zeros,mean,reshape,argmax,
     matrixSum1d,matrixSum2d,matrixSubtract1d,matrixSubtract2d,matrixMultiply1d,matrixMultiply2d}
 
