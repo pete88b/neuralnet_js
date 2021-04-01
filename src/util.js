@@ -20,6 +20,27 @@ function mean(matrix) {
 }
 
 /**
+Return a 1d or 2d array of `fillValue`.
+*/
+function full(d0,d1,fillValue) {
+    if (d1 == null) {
+        return new Array(d0).fill(fillValue);
+    }
+    const result=[];
+    for (let i=0; i<d0; i++) {
+        result.push(new Array(d1).fill(fillValue));
+    }
+    return result;
+}
+
+/**
+Return a 1d or 2d array of zeros.
+*/
+function zeros(d0,d1) {
+    return full(d0,d1,0);
+}
+
+/**
 Returns the transpose of a 2d array.
 */
 function transpose(matrix) {
@@ -31,26 +52,6 @@ function transpose(matrix) {
             } else {
                 result[columnIndex].push(elem);
             }
-        });
-    });
-    return result;
-}
-
-/**
-Returns the dot product of two 2d arrays.
-*/
-function dotProduct(a,b) {
-    const bTransposed=transpose(b);
-    const result=[];
-    a.forEach(function(aRow,aRowIndex) {
-        result[aRowIndex]=[];
-        bTransposed.forEach(function(bRow) {
-            const mults=[];
-            aRow.forEach(function(aElem,aColumnIndex) {
-                const bElem=bRow[aColumnIndex];
-                mults.push(aElem*bElem);
-            });
-            result[aRowIndex].push(mults.reduce((a, b) => a + b, 0));
         });
     });
     return result;
@@ -80,27 +81,6 @@ function randn(d0,d1) {
         }
     }
     return result;
-}
-
-/**
-Return a 1d or 2d array of `fillValue`.
-*/
-function full(d0,d1,fillValue) {
-    if (d1 == null) {
-        return new Array(d0).fill(fillValue);
-    }
-    const result=[];
-    for (let i=0; i<d0; i++) {
-        result.push(new Array(d1).fill(fillValue));
-    }
-    return result;
-}
-
-/**
-Return a 1d or 2d array of zeros.
-*/
-function zeros(d0,d1) {
-    return full(d0,d1,0);
 }
 
 /**
@@ -168,6 +148,18 @@ Elementwise multiplication of a2d with b, where a2d is 2d and b can be reshaped 
 function matrixMultiply2d(a2d,b) {
     const b2d=reshape(b,shape(a2d));
     return a2d.map((row,i) => matrixMultiply1d(row,b2d[i]));
+}
+
+/**
+Returns the dot product of two 2d arrays.
+*/
+function dotProduct(a,b) {
+    const bTransposed=transpose(b);
+    return a.map((aRow,aRowIndex) => {
+        return bTransposed.map((bRow) => {
+            return matrixMultiply1d(aRow,bRow).reduce((a,b) => a+b);
+        });         
+    });
 }
 
 /**
