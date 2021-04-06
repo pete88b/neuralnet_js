@@ -54,18 +54,22 @@ function parseCsv(stringData, rowHandler, rowLimit) {
 }
 
 /**
-Convert a row of the iris dataset from string values to numbers for input features and one hot encoded targets.
+Convert a row of the iris dataset from string values to numbers (for input features) targets.
 */
 const IRIS_CLASS_MAP = {
     0: 'Iris-setosa',
-    'Iris-setosa': [1,0,0],
+    'Iris-setosa-onehot': [1,0,0],
+    'Iris-setosa-classid': 0,
     1: 'Iris-versicolor',
-    'Iris-versicolor': [0,1,0],
+    'Iris-versicolor-onehot': [0,1,0],
+    'Iris-versicolor-classid': 1,
     2: 'Iris-virginica',
-    'Iris-virginica': [0,0,1]
+    'Iris-virginica-onehot': [0,0,1],
+    'Iris-virginica-classid': 2
 };
 class IrisRowHandler {
-    constructor() {
+    constructor(targetType) {
+        this.targetType = (targetType==null) ? 'onehot' : targetType;
         this.result=[[],[]];
     }
     normalize(row) {
@@ -80,7 +84,7 @@ class IrisRowHandler {
         row = row.split(',');
         // convert datatypes and normalize input features
         this.result[0].push(this.normalize(row.slice(0,4).map(a=>parseFloat(a))));
-        this.result[1].push(IRIS_CLASS_MAP[row[4]]);
+        this.result[1].push(IRIS_CLASS_MAP[`${row[4]}-${this.targetType}`]);
     }
 }
 

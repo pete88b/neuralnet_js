@@ -16,45 +16,45 @@ Let's train a classifier using [iris.data](https://archive.ics.uci.edu/ml/datase
 ```javascript
 import {argmax} from './src/util.module.js';
 import {head,tail,parseCsv,IRIS_CLASS_MAP,IrisRowHandler} from './src/data.module.js';
-import {BinaryCrossEntropyLoss,Linear,Sigmoid,ReLU,Learner} from './src/nn.module.js';
+import {BinaryCrossEntropyLoss,CrossEntropyLoss,Linear,Sigmoid,ReLU,Learner} from './src/nn.module.js';
 ```
 
 
 ```javascript
 let stringData=require('fs').readFileSync('data/iris.data').toString();
-let data=parseCsv(stringData, new IrisRowHandler()).result;
-let lossFn=new BinaryCrossEntropyLoss();
-let model=[new Linear(4,50), new ReLU(), new Linear(50,3), new Sigmoid()];
+let data=parseCsv(stringData, new IrisRowHandler('classid')).result;
+let lossFn=new CrossEntropyLoss();
+let model=[new Linear(4,50), new ReLU(), new Linear(50,3)];
 let learn=new Learner(model, lossFn, data);
 learn.fit(25);
 ```
 
-    epoch -1 valid loss 0.7883572345780145 metrics [ 0.43333333333333335 ]
-    epoch 0 valid loss 0.5267556633586952 metrics [ 0.5666666666666667 ]
-    epoch 1 valid loss 0.44099933286406734 metrics [ 0.7 ]
-    epoch 2 valid loss 0.40672909169806126 metrics [ 0.7666666666666667 ]
-    epoch 3 valid loss 0.3869921034748707 metrics [ 0.7333333333333333 ]
-    epoch 4 valid loss 0.3731967804273562 metrics [ 0.8 ]
-    epoch 5 valid loss 0.36288733941708184 metrics [ 0.7666666666666667 ]
-    epoch 6 valid loss 0.35406780802342647 metrics [ 0.8 ]
-    epoch 7 valid loss 0.34640309404547903 metrics [ 0.8 ]
-    epoch 8 valid loss 0.3398996707466074 metrics [ 0.8 ]
-    epoch 9 valid loss 0.33421554257888836 metrics [ 0.7666666666666667 ]
-    epoch 10 valid loss 0.3285108760429585 metrics [ 0.7666666666666667 ]
-    epoch 11 valid loss 0.3228930031170849 metrics [ 0.8 ]
-    epoch 12 valid loss 0.31745012901639436 metrics [ 0.8 ]
-    epoch 13 valid loss 0.3130312981606421 metrics [ 0.8 ]
-    epoch 14 valid loss 0.3086841753495582 metrics [ 0.8 ]
-    epoch 15 valid loss 0.30430963697452745 metrics [ 0.8 ]
-    epoch 16 valid loss 0.300084500321322 metrics [ 0.8 ]
-    epoch 17 valid loss 0.29557778712689037 metrics [ 0.8 ]
-    epoch 18 valid loss 0.29140629672455687 metrics [ 0.8 ]
-    epoch 19 valid loss 0.28759620227811683 metrics [ 0.8 ]
-    epoch 20 valid loss 0.2837103287672317 metrics [ 0.8 ]
-    epoch 21 valid loss 0.28015904255922847 metrics [ 0.8 ]
-    epoch 22 valid loss 0.27654524617006615 metrics [ 0.8 ]
-    epoch 23 valid loss 0.27356909201221596 metrics [ 0.8 ]
-    epoch 24 valid loss 0.27050508342776985 metrics [ 0.8 ]
+    epoch -1 valid loss 1.4739151121882226 metrics [ 0.4 ]
+    epoch 0 valid loss 0.5848744757989532 metrics [ 0.6666666666666666 ]
+    epoch 1 valid loss 0.49159050206731364 metrics [ 0.7666666666666667 ]
+    epoch 2 valid loss 0.4229015771154563 metrics [ 0.8666666666666667 ]
+    epoch 3 valid loss 0.38638241771021936 metrics [ 0.9 ]
+    epoch 4 valid loss 0.3604730039888145 metrics [ 0.9333333333333333 ]
+    epoch 5 valid loss 0.3398951858760056 metrics [ 0.9333333333333333 ]
+    epoch 6 valid loss 0.32765219645252874 metrics [ 0.9333333333333333 ]
+    epoch 7 valid loss 0.31447320048095306 metrics [ 0.9333333333333333 ]
+    epoch 8 valid loss 0.309237885506544 metrics [ 0.9333333333333333 ]
+    epoch 9 valid loss 0.2975130858963832 metrics [ 0.9333333333333333 ]
+    epoch 10 valid loss 0.29207270307432676 metrics [ 0.9333333333333333 ]
+    epoch 11 valid loss 0.28569384036078393 metrics [ 0.9333333333333333 ]
+    epoch 12 valid loss 0.2719198981495626 metrics [ 0.9333333333333333 ]
+    epoch 13 valid loss 0.2714915252404436 metrics [ 0.9333333333333333 ]
+    epoch 14 valid loss 0.2648930707928398 metrics [ 0.9333333333333333 ]
+    epoch 15 valid loss 0.2575430138085798 metrics [ 0.9333333333333333 ]
+    epoch 16 valid loss 0.26139239668554426 metrics [ 0.9333333333333333 ]
+    epoch 17 valid loss 0.24974931679898213 metrics [ 0.9333333333333333 ]
+    epoch 18 valid loss 0.24400324123985023 metrics [ 0.9333333333333333 ]
+    epoch 19 valid loss 0.23800864767053406 metrics [ 0.9666666666666667 ]
+    epoch 20 valid loss 0.23783490396866186 metrics [ 0.9666666666666667 ]
+    epoch 21 valid loss 0.23414740306625575 metrics [ 0.9666666666666667 ]
+    epoch 22 valid loss 0.23276390444542142 metrics [ 0.9666666666666667 ]
+    epoch 23 valid loss 0.22798949285307182 metrics [ 0.9666666666666667 ]
+    epoch 24 valid loss 0.22188885746884998 metrics [ 0.9666666666666667 ]
 
 
 We can look at predictions our trained model makes on the validation data.
@@ -63,24 +63,30 @@ For each row, `learn.predict` gives us `[preds, predicted label, actual label]`
 
 
 ```javascript
-let preds=learn.predict(learn.xValid, learn.yValid, (y=>`${argmax(y)}: ${IRIS_CLASS_MAP[argmax(y)]}`));
+function yToLabelFn(y) {
+    if (Array.isArray(y)) {
+        y=argmax(y);
+    }
+    return `${y}: ${IRIS_CLASS_MAP[y]}`
+}
+let preds=learn.predict(learn.xValid, learn.yValid, yToLabelFn);
 tail(preds,3);
 ```
 
     -3 [
-      [ 0.01314091483672807, 0.24587330687958442, 0.7926335199651222 ],
-      '2: Iris-virginica',
-      '2: Iris-virginica'
-    ]
-    -2 [
-      [ 0.001113699016691579, 0.4366974366023484, 0.712490424150912 ],
-      '2: Iris-virginica',
-      '2: Iris-virginica'
-    ]
-    -1 [
-      [ 0.9961008020334862, 0.001475307146697653, 0.0019550674874320613 ],
+      [ 5.229994592729576, -0.818909550073246, -3.375091406219404 ],
       '0: Iris-setosa',
       '0: Iris-setosa'
+    ]
+    -2 [
+      [ -0.6277809352701051, 1.8666505942828426, 0.6384743521119428 ],
+      '1: Iris-versicolor',
+      '1: Iris-versicolor'
+    ]
+    -1 [
+      [ -1.9751569068291988, 5.704614417138167, 2.861458954249989 ],
+      '1: Iris-versicolor',
+      '1: Iris-versicolor'
     ]
 
 
@@ -97,21 +103,17 @@ learn.predict(...rh.result, (y=>`${argmax(y)}: ${IRIS_CLASS_MAP[argmax(y)]}`));
 
     [
       [
-        [ 0.011687742115645418, 0.42806382336273874, 0.1731676214386136 ],
+        [ -2.1274712852819375, 5.381204677236861, 3.6462702824166584 ],
         '1: Iris-versicolor',
         '0: Iris-setosa'
       ],
       [
-        [ 0.3528794767136167, 0.12903259032530753, 0.05141777933637007 ],
-        '0: Iris-setosa',
+        [ -1.3324676896825176, 2.382549052851048, -2.294187675498703 ],
+        '1: Iris-versicolor',
         '1: Iris-versicolor'
       ],
       [
-        [
-          0.009738425285232473,
-          0.006588968072670429,
-          0.004163304527861473
-        ],
+        [ 2.0427834286750493, -1.8383986297828827, -6.373072562622682 ],
         '0: Iris-setosa',
         '2: Iris-virginica'
       ]

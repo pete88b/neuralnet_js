@@ -1,4 +1,22 @@
 /**
+Round `x` (or all elements of `x`) to `dp` decimal places.
+*/
+function round(x,dp) {
+    dp = dp || 0;
+    if (Array.isArray(x)) {
+        return x.map(_x => round(_x,dp));
+    }
+    return Math.round(x*Math.pow(10,dp))/Math.pow(10,dp);
+}
+
+/**
+Flatten a 2d array into a 1d array.
+*/
+function flatten(a2d) {
+    return [].concat(...a2d);
+}
+
+/**
 */
 function exp(a) {
     return Math.pow(Math.E, a);
@@ -44,6 +62,28 @@ Return a 1d or 2d array of zeros.
 */
 function zeros(d0,d1) {
     return full(d0,d1,0);
+}
+
+/**
+Return a square array with ones on the main diagonal.
+*/
+function identity(n) {
+    const result=zeros(n,n);
+    for (let i=0; i<n; i++) {
+        result[i][i]=1;
+    }
+    return result;
+}
+
+/**
+Return the mean and population standard deviation of a 1d array.
+
+https://stackoverflow.com/questions/7343890/standard-deviation-javascript
+*/
+function meanAndStandardDeviation(a1d) {
+    const n=a1d.length;
+    const mean=a1d.reduce((a,b)=>a+b) / n;
+    return [mean,Math.sqrt(a1d.map(a => Math.pow(a - mean, 2)).reduce((a, b) => a + b) / n)];
 }
 
 /**
@@ -175,7 +215,16 @@ function argmax(a) {
     return a.indexOf(Math.max(...a));
 }
 
+/**
+Normalize a 2d array by subtracting its mean and dividing by its standard deviation for all elements.
+*/
+function normalize(a2d) {
+    const [mean,std] = meanAndStandardDeviation(flatten(a2d));
+    return matrixMultiply2d(matrixSubtract2d(a2d,mean), 1/std);
+}
+
 export {
-    exp,shape,transpose,dotProduct,randn,full,zeros,mean,reshape,argmax,
+    round,flatten,exp,shape,transpose,dotProduct,randn,full,zeros,mean,reshape,argmax,normalize,
+    identity,meanAndStandardDeviation,
     matrixSum1d,matrixSum2d,matrixSubtract1d,matrixSubtract2d,matrixMultiply1d,matrixMultiply2d}
 

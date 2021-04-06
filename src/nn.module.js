@@ -1,30 +1,31 @@
 /**
 Imports we need in nn.module.js
 */
-import {shape,transpose,dotProduct,randn,zeros,argmax,mean} from './util.module.js';
+import {exp,shape,transpose,dotProduct,randn,zeros,argmax,mean} from './util.module.js';
 import {matrixSum1d,matrixSum2d,matrixSubtract1d,matrixSubtract2d,matrixMultiply1d,matrixMultiply2d} from './util.module.js';
 import {head,tail,parseCsv,IRIS_CLASS_MAP,IrisRowHandler,shuffle,split,batches} from './data.module.js';
 
 /**
+yTrue can be either 2d (one-hot encoded targets) or 1d (array of class IDs).
 */
-function accuracy(yPred2d,yTrue2d) {
-    if (yPred2d.length != yTrue2d.length) {
-        throw Error(`Expected yPred2d.length ${yPred2d.length} to equal yTrue2d.length ${yTrue2d.length}`)
+function accuracy(yPred2d,yTrue) {
+    const yPredShape=shape(yPred2d);
+    const yTrueShape=shape(yTrue);
+    if (yPredShape[0] != yTrueShape[0]) {
+        throw `Expected yPred2d.length ${yPredShape[0]} to equal yTrue.length ${yTrueShape[0]}`;
+    }
+    if (yTrueShape.length == 2 && yPredShape[1] != yTrueShape[1]) {
+        throw `Expected shape(yPred2d)[1] ${yPredShape[1]} to equal shape(yTrue)[1] ${yTrueShape[1]}`;
     }
     let correctCount=0;
-    yPred2d.map((yPred1d, rowIndex) => {
-        const yTrue1d=yTrue2d[rowIndex];
-        if (Array.isArray(yPred1d)) {
-            if (argmax(yPred1d) == argmax(yTrue1d)) {
-                correctCount++;
-            }
-        } else {
-            if (yPred1d == yTrue1d) {
-                correctCount++;
-            }
+    for (let i=0; i<yPred2d.length; i++) {
+        let p = argmax(yPred2d[i]);
+        let t = (yTrueShape.length == 2) ? argmax(yTrue[i]) : yTrue[i];
+        if (p == t) {
+            correctCount++;
         }
-    });
-    return correctCount/yPred2d.length;
+    }
+    return correctCount/yPredShape[0];
 }
 
 /**
@@ -41,16 +42,39 @@ class MSE {
 }
 
 /**
+Cross entropy with softmax.
+yTrue1d is an array of target class IDs - not a 2d array of 2 hot encoded targets.
+*/
+class CrossEntropyLoss {
+    softmax1d(a) {
+        const maxValue=Math.max(...a); // normalize values for numerical stability (log sum exp)
+        const temp=a.map(e => exp(e-maxValue));
+        const sum=temp.reduce((a,b)=>a+b);
+        return temp.map(e=>e/sum);
+    }
+        
+    forward(yPred2d,yTrue1d) {
+        this.yPred2d=yPred2d.map(yPred1d => this.softmax1d(yPred1d));
+        this.yTrue1d=yTrue1d;
+        const temp=this.yPred2d.map((yPred1d,i) => Math.log(yPred1d[yTrue1d[i]])); // TODO: add tiny value to avoid log(0)
+        return -temp.reduce((a,b) => a+b) / temp.length;
+    }
+    
+    backward() {
+        const yTrue1d=this.yTrue1d;
+        this.grad=this.yPred2d.map(yPred1d => [...yPred1d]); // copy preds
+        this.grad.forEach((yPred1d,i)=>yPred1d[yTrue1d[i]]-=1);
+//         this.grad=matrixMultiply2d(this.grad,1/this.grad.length); // TODO: xxx
+        return this.grad; // TODO: mean for all loss functions
+        // output_error_signal = (output_probs - training_labels) / output_probs.shape[0]
+    }
+}
+
+/**
 */
 class BinaryCrossEntropyLoss {
     _forward1d(yPred1d,yTrue1d) {
-        const temp=[];
-        yPred1d.forEach(function (yPred, i) {
-            let tempValue=yPred;
-            tempValue=(yTrue1d[i]==1.) ? tempValue : 1-tempValue;
-            tempValue=Math.log(tempValue);
-            temp.push(tempValue);
-        });
+        const temp=yPred1d.map((yPred,i) => Math.log((yTrue1d[i]==1.) ? yPred : 1-yPred));
         return -temp.reduce((a,b) => a+b) / temp.length;
     }
     forward(yPred2d,yTrue2d) {
@@ -60,12 +84,7 @@ class BinaryCrossEntropyLoss {
         return lossValue1d.reduce((a,b) => a+b) / lossValue1d.length;
     }
     _backward1d(yPred1d,yTrue1d) {
-        const temp=[];
-        yPred1d.forEach(function (yPred, i) { // TODO: rewrite with map
-            let tempValue=(yTrue1d[i]==1.) ? -1/yPred : 1/(1-yPred);
-            temp.push(tempValue);
-        });
-        return temp;
+        return yPred1d.map((yPred,i) => (yTrue1d[i]==1.) ? -1/yPred : 1/(1-yPred));
     }
     backward() {
         const yTrue2d=this.yTrue2d;
@@ -78,7 +97,7 @@ class BinaryCrossEntropyLoss {
 */
 class Sigmoid {
     forward(x2d) {
-        this.results=x2d.map(x1d => x1d.map(x => 1./(1.+Math.pow(Math.E, -x))));
+        this.results=x2d.map(x1d => x1d.map(x => 1./(1.+exp(-x))));
         return this.results;
     }
     backward(gradients) {
@@ -97,14 +116,11 @@ class ReLU {
             if (x>0) {
                 this.gradMask[rowIndex][colIndex]=1;
             }
-            return Math.max(0,x)
+            return Math.max(0,x);
         }));
     }
-    matrixMultiply(a2d, b2d) {
-        return a2d.map((a1d,rowIndex) => a1d.map((a,colIndex) => a*b2d[rowIndex][colIndex]));
-    }
     backward(gradient) {
-        return this.matrixMultiply(this.gradMask,gradient);
+        return matrixMultiply2d(this.gradMask,gradient);
     }
 }
 
@@ -133,7 +149,7 @@ class Linear {
     }
     update(lr) {
         // gradient calculations in backward don't account for batch size, so we do it here
-        lr=lr/this.x.length;
+        lr=lr/this.x.length; // TODO: change gradient calc to account for batch size - all XxxLoss classes
         this.weights=matrixSubtract2d(this.weights,matrixMultiply2d(this.weightsGradient,lr));
         if (this.updateBias) {
             this.bias=matrixSubtract1d(this.bias,matrixMultiply1d(this.biasGradient,lr));
@@ -207,5 +223,5 @@ class Learner {
     }
 }
 
-export {Sigmoid,MSE,BinaryCrossEntropyLoss,ReLU,Linear,Learner}
+export {accuracy,Sigmoid,MSE,BinaryCrossEntropyLoss,CrossEntropyLoss,ReLU,Linear,Learner}
 
