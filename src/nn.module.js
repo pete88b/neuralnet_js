@@ -1,7 +1,7 @@
 /**
 Imports we need in nn.module.js
 */
-import {exp,shape,transpose,dotProduct,randn,zeros,argmax,mean} from './util.module.js';
+import {exp,shape,transpose,dotProduct,randn,zeros,argmax,mean,round} from './util.module.js';
 import {matrixSum1d,matrixSum2d,matrixSubtract1d,matrixSubtract2d,matrixMultiply1d,matrixMultiply2d} from './util.module.js';
 import {head,tail,parseCsv,IRIS_CLASS_MAP,IrisRowHandler,shuffle,split,batches} from './data.module.js';
 
@@ -42,8 +42,35 @@ class MSE {
 }
 
 /**
+Takes a 2d array and returns a 1d array of the log of the sum of the exp for each row.
+*/
+function logsumexp(x) {
+    const m = x.map(a => Math.max(...a));
+    let temp = x.map((row,i) => row.map(e => e-m[i])); // x-m[:,None]
+    temp = temp.map(row => row.map(e => exp(e)));      // .exp()
+    temp = temp.map(row => row.reduce((a,b) => a+b))   // .sum(-1)
+    temp = temp.map(a => Math.log(a));                 // .log()
+    return matrixSum1d(m, temp);                       // return m + ...
+}
+
+/**
+Takes a 2d array and returns a 2d array of log softmax for each element.
+*/
+function log_softmax(x) {
+    const _logsumexp = logsumexp(x);
+    return x.map((row,i) => row.map(e => e-_logsumexp[i]));
+}
+
+/**
+Takes a 2d input (log softmax predictions) and a 1d array of target class IDs and returns the negative log likelihood.
+*/
+function nll(input, target) {
+    return -mean(input.map((row,i) => row[target[i]]));
+}
+
+/**
 Cross entropy with softmax.
-yTrue1d is an array of target class IDs - not a 2d array of 2 hot encoded targets.
+yTrue1d is an array of target class IDs - not a 2d array of 1 hot encoded targets.
 */
 class CrossEntropyLoss {
     softmax1d(a) {
@@ -64,9 +91,7 @@ class CrossEntropyLoss {
         const yTrue1d=this.yTrue1d;
         this.grad=this.yPred2d.map(yPred1d => [...yPred1d]); // copy preds
         this.grad.forEach((yPred1d,i)=>yPred1d[yTrue1d[i]]-=1);
-//         this.grad=matrixMultiply2d(this.grad,1/this.grad.length); // TODO: xxx
-        return this.grad; // TODO: mean for all loss functions
-        // output_error_signal = (output_probs - training_labels) / output_probs.shape[0]
+        return this.grad;
     }
 }
 

@@ -35,9 +35,12 @@ function shape(m) {
 }
 
 /**
-Returns the mean of all elements in a 2d array.
+Returns the mean of all elements in a 1d or 2d array.
 */
 function mean(matrix) {
+    if (!Array.isArray(matrix[0])) {
+        matrix=[matrix];
+    }
     const elementCount=shape(matrix).reduce((a,b)=>a*b);
     const sum=matrix.map(row=>row.reduce((a,b)=>a+b)).reduce((a,b)=>a+b);
     return sum/elementCount;
