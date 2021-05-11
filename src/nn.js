@@ -5,10 +5,10 @@ function accuracy(yPred2d,yTrue) {
     const yPredShape=shape(yPred2d);
     const yTrueShape=shape(yTrue);
     if (yPredShape[0] != yTrueShape[0]) {
-        throw `Expected yPred2d.length ${yPredShape[0]} to equal yTrue.length ${yTrueShape[0]}`;
+        throw new Error(`Expected yPred2d.length ${yPredShape[0]} to equal yTrue.length ${yTrueShape[0]}`);
     }
     if (yTrueShape.length == 2 && yPredShape[1] != yTrueShape[1]) {
-        throw `Expected shape(yPred2d)[1] ${yPredShape[1]} to equal shape(yTrue)[1] ${yTrueShape[1]}`;
+        throw new Error(`Expected shape(yPred2d)[1] ${yPredShape[1]} to equal shape(yTrue)[1] ${yTrueShape[1]}`);
     }
     let correctCount=0;
     for (let i=0; i<yPred2d.length; i++) {
@@ -143,6 +143,7 @@ class ReLU {
 }
 
 /**
+Applies a linear transformation to `x`.
 */
 class Linear {
     constructor(inputDim,numHidden=1,bias=true) {
@@ -161,6 +162,44 @@ class Linear {
         // weightsGradient/biasGradient need to be the same shape as weights/bias
         this.weightsGradient=dotProduct(transpose(this.x), gradient);
         // this.biasGradient=gradient.sum(axis=0)
+        this.biasGradient=transpose(gradient).map(col => col.reduce((a,b) => a+b));
+        this.xGradient=dotProduct(gradient,transpose(this.weights));
+        return this.xGradient;
+    }
+    update(lr) {
+        // gradient calculations in backward don't account for batch size, so we do it here
+        lr=lr/this.x.length; // TODO: change gradient calc to account for batch size - all XxxLoss classes
+        this.weights=matrixSubtract2d(this.weights,matrixMultiply2d(this.weightsGradient,lr));
+        if (this.updateBias) {
+            this.bias=matrixSubtract1d(this.bias,matrixMultiply1d(this.biasGradient,lr));
+        }
+    }
+}
+
+/**
+Using
+- `Embedding` when `x` is an array of IDs or
+- `Linear` when `x` is a one-hot encoded matrix
+should give the same results - but `Embedding` should be faster.
+*/
+class Embedding extends Linear {
+    constructor(inputDim,numHidden=1,bias=true) {
+        super(inputDim,numHidden,bias);
+        this.weights=uniform(inputDim,numHidden,-1,1);
+    }
+    forward(x) {
+        this.x=x;
+        return matrixSum2d(x.map(i=>this.weights[i]), this.bias);
+    }
+    backward(gradient) { // gradient shape(bs,numHidden)
+        this.weightsGradient=zeros(this.inputDim,this.numHidden);
+        for (let i=0; i<this.inputDim; i++) {
+            this.x.map((row, rowIndex)=>{
+                if (row == i) {
+                    this.weightsGradient[i]=matrixSum1d(this.weightsGradient[i],gradient[rowIndex]);
+                }
+            })
+        }
         this.biasGradient=transpose(gradient).map(col => col.reduce((a,b) => a+b));
         this.xGradient=dotProduct(gradient,transpose(this.weights));
         return this.xGradient;

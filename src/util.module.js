@@ -10,6 +10,16 @@ function round(x,dp) {
 }
 
 /**
+Logit (AKA log-odds) is the logarithm of the odds where p is a probability.
+*/
+function logit(p) {
+    if (Array.isArray(p)) {
+        return p.map(a=>logit(a));
+    }
+    return Math.log(p/(1-p));
+}
+
+/**
 Flatten a 2d array into a 1d array.
 */
 function flatten(a2d) {
@@ -133,6 +143,23 @@ function randn(d0,d1) {
 }
 
 /**
+Returns a 2d array filled with pseudo-random number in the range [low, high) with ~ uniform distribution.
+*/
+function uniform(d0,d1,low,high) {
+    low = low || 0;
+    high = high || 1;
+    const result = [];
+    for (let rowIndex = 0; rowIndex < d0; rowIndex++) {
+        const row=[];
+        result.push(row);
+        for (let colIndex = 0; colIndex < d1; colIndex++) {
+            row.push(Math.random()*(high-low)+low);
+        }
+    }
+    return result;
+}
+
+/**
 Return matrix of `newShape` if
 - a is a scalar value,
 - a is a 1d array with a length that matches newShape[1] or
@@ -148,7 +175,7 @@ function reshape(a,newShape) {
         return new Array(newShape[0]).fill(a);
     }
     newShape.forEach((s,i) => {
-        if (s!=oldShape[i]) throw `Can't reshape from [${oldShape}] to [${newShape}]`;
+        if (s!=oldShape[i]) throw new Error(`Can't reshape from [${oldShape}] to [${newShape}]`);
     });
     return a;
 }
@@ -201,6 +228,7 @@ function matrixMultiply2d(a2d,b) {
 
 /**
 Returns the dot product of two 2d arrays.
+See: http://matrixmultiplication.xyz/
 */
 function dotProduct(a,b) {
     const bTransposed=transpose(b);
@@ -227,7 +255,7 @@ function normalize(a2d) {
 }
 
 export {
-    round,flatten,exp,shape,transpose,dotProduct,randn,full,zeros,mean,reshape,argmax,normalize,
-    identity,meanAndStandardDeviation,
+    round,flatten,exp,shape,transpose,dotProduct,randn,uniform,full,zeros,mean,reshape,argmax,
+    normalize,identity,meanAndStandardDeviation,
     matrixSum1d,matrixSum2d,matrixSubtract1d,matrixSubtract2d,matrixMultiply1d,matrixMultiply2d}
 

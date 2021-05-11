@@ -42,7 +42,7 @@ function parseCsv(stringData, rowHandler, rowLimit) {
     for (let i=0; i<rowLimit; i++) {
         const row=rows[i];
         if (row !== '') {
-            rowHandler.handleRow(row);
+            rowHandler.handleRow(row,i);
         }
     }
     return rowHandler;
