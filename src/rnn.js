@@ -1,4 +1,19 @@
 /**
+Convert a 1d array of numbers (sequence of word indices) to a 2d array of shape [sequenceLength+1, nums.length/sequenceLength].
+This makes it easy to iterate over the 1st dimention of "data" to access a chunk of "nums", one timestep at a time.
+*/
+function toData(nums,sequenceLength) {
+    const data=full(sequenceLength+1).map(e=>[]);
+    const iMax=nums.length-sequenceLength;
+    for (let i=0; i<iMax; i+=sequenceLength) {
+        for (let j=0; j<sequenceLength+1; j++) {
+            data[j].push(nums[i+j]);
+        }
+    }
+    return data;
+}
+
+/**
 A layer that can wrap a Linear or Embedding so that it can be called multiple times during a forward pass.
 */
 class MultiCallLayer {

@@ -122,13 +122,16 @@ function split(arrays, percent=0.2) {
 /**
 Shuffle any number of arrays then put them into an array of batches.
 */
-function batches(arrays, bs=64) {
-    shuffle(arrays);
+function batches(arrays, bs=64, dropLast=false, shuffleArrays=true) {
+    if (shuffleArrays) {
+        shuffle(arrays);
+    }
     const result=[];
-    for (let i=0; i<(arrays[0].length/bs); i++) {
+    let batchCount=(dropLast) ? Math.floor(arrays[0].length/bs) : arrays[0].length/bs;
+    for (let i=0; i<batchCount; i++) {
         const batch=[];
         result.push(batch);
-        arrays.forEach(array=>batch.push(array.slice(bs*i,bs*(i+1))))
+        arrays.forEach(array=>batch.push(array.slice(bs*i,bs*(i+1))));
     }
     return result;
 }
