@@ -170,8 +170,7 @@ class Linear {
         this.weightsGradient=dotProduct(transpose(this.x), gradient);
         // this.biasGradient=gradient.sum(axis=0)
         this.biasGradient=transpose(gradient).map(col => col.reduce((a,b) => a+b));
-        this.xGradient=dotProduct(gradient,transpose(this.weights));
-        return this.xGradient;
+        return this.xGradient=dotProduct(gradient,transpose(this.weights));
     }
     update(lr) {
         // gradient calculations in backward don't account for batch size, so we do it here
@@ -208,8 +207,7 @@ class Embedding extends Linear {
             })
         }
         this.biasGradient=transpose(gradient).map(col => col.reduce((a,b) => a+b));
-        this.xGradient=dotProduct(gradient,transpose(this.weights));
-        return this.xGradient;
+        return this.xGradient=dotProduct(gradient,transpose(this.weights));
     }
     update(lr) {
         // gradient calculations in backward don't account for batch size, so we do it here
